@@ -1,30 +1,58 @@
 import React, { useState } from "react";
-import ItemForm from "./ItemForm";
 import Filter from "./Filter";
-import Item from "./Item";
+import ItemForm from "./ItemForm";
 
 function ShoppingList({ items }) {
-  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [filteredItems, setFilteredItems] = useState(items);
+  const [searchText, setSearchText] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("All");
 
-  function handleCategoryChange(event) {
-    setSelectedCategory(event.target.value);
-  }
+  const handleSearchChange = (search) => {
+    setSearchText(search);
+    filterItems(search, categoryFilter);
+  };
 
-  const itemsToDisplay = items.filter((item) => {
-    if (selectedCategory === "All") return true;
+  const handleCategoryChange = (event) => {
+    const category = event.target.value;
+    setCategoryFilter(category);
+    filterItems(searchText, category);
+  };
 
-    return item.category === selectedCategory;
-  });
+  const filterItems = (search, category) => {
+    let newFilteredItems = items;
+    if (category !== "All") {
+      newFilteredItems = newFilteredItems.filter(
+        (item) => item.category === category
+      );
+    }
+    if (search) {
+      newFilteredItems = newFilteredItems.filter((item) =>
+        item.name.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+    setFilteredItems(newFilteredItems);
+  };
+
+  const handleItemFormSubmit = (newItem) => {
+    setFilteredItems([...filteredItems, newItem]);
+  };
 
   return (
-    <div className="ShoppingList">
-      <ItemForm />
-      <Filter onCategoryChange={handleCategoryChange} />
-      <ul className="Items">
-        {itemsToDisplay.map((item) => (
-          <Item key={item.id} name={item.name} category={item.category} />
+    <div>
+      <Filter
+        search={searchText}
+        onSearchChange={handleSearchChange}
+        onCategoryChange={handleCategoryChange}
+      />
+      <ItemForm onItemFormSubmit={handleItemFormSubmit} />
+      <div className="Items">
+        {filteredItems.map((item) => (
+          <div key={item.id}>
+            <span>{item.name}</span>
+            <span>{item.category}</span>
+          </div>
         ))}
-      </ul>
+      </div>
     </div>
   );
 }
